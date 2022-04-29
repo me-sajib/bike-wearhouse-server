@@ -38,6 +38,38 @@ async function databaseInterface() {
       const result = await cursor.toArray();
       res.send(result);
     });
+
+    // increase inventory quantity by id
+    app.put("/inventory/quantity/:id", async (req, res) => {
+      const id = req.params.id;
+      const userQuantity = req.body.quantity;
+      const cursor = bikeCollection.find({ _id: ObjectId(id) });
+      const result = await cursor.toArray();
+      const quantity = result[0].quantity;
+      const newQuantity = parseInt(quantity) + parseInt(userQuantity);
+      const update = await bikeCollection.updateOne(
+        { _id: ObjectId(id) },
+        { $set: { quantity: newQuantity } }
+      );
+      res.send(update);
+    });
+
+    // mines inventory quantity by id
+    app.put("/inventory/mines/:id", async (req, res) => {
+      const id = req.params.id;
+      const cursor = bikeCollection.find({ _id: ObjectId(id) });
+      const result = await cursor.toArray();
+      const quantity = result[0].quantity;
+      const newQuantity = parseInt(quantity) - 1;
+      const update = await bikeCollection.updateOne(
+        { _id: ObjectId(id) },
+        { $set: { quantity: newQuantity } }
+      );
+      res.send(update);
+    }
+
+
+
   } finally {
     // client.close();
   }
