@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 const app = express();
 app.use(cors());
@@ -27,6 +27,14 @@ async function databaseInterface() {
     // show six bike in inventory section
     app.get("/inventory", async (req, res) => {
       const cursor = bikeCollection.find({}).limit(6);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // show inventory in id
+    app.get("/inventory/:id", async (req, res) => {
+      const id = req.params.id;
+      const cursor = bikeCollection.find({ _id: ObjectId(id) });
       const result = await cursor.toArray();
       res.send(result);
     });
