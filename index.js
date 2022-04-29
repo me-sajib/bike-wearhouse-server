@@ -40,7 +40,7 @@ async function databaseInterface() {
     });
 
     // increase inventory quantity by id
-    app.put("/inventory/quantity/:id", async (req, res) => {
+    app.put("/inventory/addQuantity/:id", async (req, res) => {
       const id = req.params.id;
       const userQuantity = req.body.quantity;
       const cursor = bikeCollection.find({ _id: ObjectId(id) });
@@ -55,7 +55,7 @@ async function databaseInterface() {
     });
 
     // mines inventory quantity by id
-    app.put("/inventory/mines/:id", async (req, res) => {
+    app.put("/inventory/delivery/:id", async (req, res) => {
       const id = req.params.id;
       const cursor = bikeCollection.find({ _id: ObjectId(id) });
       const result = await cursor.toArray();
@@ -66,10 +66,22 @@ async function databaseInterface() {
         { $set: { quantity: newQuantity } }
       );
       res.send(update);
-    }
+    });
 
+    // show all inventory
+    app.get("/allInventory", async (req, res) => {
+      const cursor = bikeCollection.find({});
+      const result = await cursor.toArray();
+      console.log(result);
+      res.send(result);
+    });
 
-
+    // delete inventory by id
+    app.delete("/inventory/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await bikeCollection.deleteOne({ _id: ObjectId(id) });
+      res.send(result);
+    });
   } finally {
     // client.close();
   }
