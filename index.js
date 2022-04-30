@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
@@ -10,12 +11,29 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("running server");
 });
+
 const uri = `mongodb+srv://organicInventory:${process.env.DB_PASS}@cluster0.dhxbr.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
+
+// verify token
+function verifyToken(req, res, next) {
+  const bearerToken = req.headers.authorization;
+  if (!bearerToken) {
+    res.sendStatus(403);
+  }
+  const token = bearerToken.split(" ")[1];
+  jwt.verify(token, process.env.TOKEN, (err, decodedData) => {
+    if (err) {
+      res.sendStatus(403);
+    }
+    req.decode = decodedData;
+    next();
+  });
+}
 
 async function databaseInterface() {
   try {
@@ -72,7 +90,6 @@ async function databaseInterface() {
     app.get("/allInventory", async (req, res) => {
       const cursor = bikeCollection.find({});
       const result = await cursor.toArray();
-      console.log(result);
       res.send(result);
     });
 
@@ -81,6 +98,40 @@ async function databaseInterface() {
       const id = req.params.id;
       const result = await bikeCollection.deleteOne({ _id: ObjectId(id) });
       res.send(result);
+    });
+
+    // add new bike to user
+    app.post("/addItemByUser", async (req, res) => {
+      const body = req.body;
+      const result = await bikeCollection.insertOne(body);
+      res.send(result);
+    });
+
+    // show inventory item by user email
+    app.get("/myItem/:email", verifyToken, async (req, res) => {
+      const decodeEmail = req.decode;
+      const email = req.params.email;
+      if (email !== decodeEmail.email) {
+        res.sendStatus(403);
+      } else if (email === decodeEmail.email) {
+        const cursor = bikeCollection.find({ email: email });
+        const result = await cursor.toArray();
+        res.send(result);
+      }
+    });
+
+    // jwt token for user
+    app.post("/addToken", async (req, res) => {
+      const email = req.body;
+
+      jwt.sign(
+        { email },
+        process.env.TOKEN,
+        { expiresIn: "1h" },
+        (err, token) => {
+          res.send({ token });
+        }
+      );
     });
   } finally {
     // client.close();
