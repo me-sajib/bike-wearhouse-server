@@ -115,13 +115,14 @@ async function databaseInterface() {
 
     // show inventory item by user email
     app.get("/userItem/:email", verifyToken, async (req, res) => {
-      // const tokenEmail = req.decode.email;
-      console.log(req.headers.authorization);
+      const tokenEmail = req.decode.email.email;
       const email = req.params.email;
 
-      const cursor = bikeCollection.find({ email });
-      const result = await cursor.toArray();
-      res.send(result);
+      if (email == tokenEmail) {
+        const cursor = bikeCollection.find({ email });
+        const result = await cursor.toArray();
+        res.send(result);
+      }
     });
 
     // jwt token for user
