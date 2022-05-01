@@ -21,18 +21,24 @@ const client = new MongoClient(uri, {
 
 // verify token
 function verifyToken(req, res, next) {
-  const bearerToken = req.headers.authorization;
-  if (!bearerToken) {
-    res.sendStatus(403);
+  const auth = req.headers.authorization;
+  if (!auth) {
+    return res.status(401).send({ message: "unauthorize" });
   }
-  const token = bearerToken.split(" ")[1];
-  jwt.verify(token, process.env.TOKEN, (err, decodedData) => {
-    if (err) {
-      res.sendStatus(403);
-    }
-    req.decode = decodedData;
-    next();
-  });
+  const token = auth.split(" ")[1];
+  // verify token
+
+  try {
+    jwt.verify(token, process.env.TOKEN, (err, decode) => {
+      if (err) {
+        return res.status(403).send({ error: "forbidden" });
+      }
+      req.decode = decode;
+      next();
+    });
+  } catch (err) {
+    res.status(403).send({ err });
+  }
 }
 
 async function databaseInterface() {
@@ -108,16 +114,14 @@ async function databaseInterface() {
     });
 
     // show inventory item by user email
-    app.get("/myItem/:email", verifyToken, async (req, res) => {
-      const decodeEmail = req.decode;
+    app.get("/userItem/:email", verifyToken, async (req, res) => {
+      // const tokenEmail = req.decode.email;
+      console.log(req.headers.authorization);
       const email = req.params.email;
-      if (email !== decodeEmail.email) {
-        res.sendStatus(403);
-      } else if (email === decodeEmail.email) {
-        const cursor = bikeCollection.find({ email: email });
-        const result = await cursor.toArray();
-        res.send(result);
-      }
+
+      const cursor = bikeCollection.find({ email });
+      const result = await cursor.toArray();
+      res.send(result);
     });
 
     // jwt token for user
@@ -127,7 +131,7 @@ async function databaseInterface() {
       jwt.sign(
         { email },
         process.env.TOKEN,
-        { expiresIn: "1h" },
+        { expiresIn: "1d" },
         (err, token) => {
           res.send({ token });
         }
