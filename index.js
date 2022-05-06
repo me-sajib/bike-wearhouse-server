@@ -21,6 +21,7 @@ const client = new MongoClient(uri, {
 
 // verify token
 function verifyToken(req, res, next) {
+  // allow access control origin
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
@@ -30,6 +31,7 @@ function verifyToken(req, res, next) {
     "Access-Control-Allow-Methods",
     "GET,POST,PUT,PATCH,DELETE,OPTIONS"
   );
+  // get token from header
   const auth = req.headers.authorization;
   if (!auth) {
     return res.status(401).send({ message: "unauthorize" });
