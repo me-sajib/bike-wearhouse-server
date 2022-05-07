@@ -21,16 +21,6 @@ const client = new MongoClient(uri, {
 
 // verify token
 function verifyToken(req, res, next) {
-  // allow access control origin
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin,X-Requested-With,Content-Type,Accept"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-  );
   // get token from header
   const auth = req.headers.authorization;
   if (!auth) {
@@ -155,5 +145,5 @@ async function databaseInterface() {
 }
 databaseInterface();
 app.listen(port, () => {
-  console.log("server is running on port " + port);
+  // console.log("server is running on port " + port);
 });
