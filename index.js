@@ -55,7 +55,16 @@ async function databaseInterface() {
     const bikeCollection = client
       .db(process.env.DB_NAME)
       .collection(process.env.DB_COLLECTION);
+    const teamCollection = client
+      .db(process.env.DB_NAME)
+      .collection(process.env.TEAM_COLLECTION);
 
+    // team collection data for the team page
+    app.get("/teams", async (req, res) => {
+      const cursor = teamCollection.find({});
+      const teams = await cursor.toArray();
+      res.send(teams);
+    });
     // show six bike in inventory section
     app.get("/inventory", async (req, res) => {
       const cursor = bikeCollection.find({}).limit(6);
